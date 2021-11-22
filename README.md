@@ -1,2 +1,1 @@
-# ENCNet_paddle
-reproduction of ENCNet
+reproduction of encnet
