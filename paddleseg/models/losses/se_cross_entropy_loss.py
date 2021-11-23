@@ -36,7 +36,7 @@ class SeCrossEntropyLoss(nn.Layer):
         for i in range(batch_size):
             hist = paddle.histogram(label[i], bins=self.num_classes, min=0, max=self.num_classes-1)
             hist = hist.astype('float32') / hist.sum().astype('float32')
-            se_label[i] = hist
+            se_label[i] = (hist > 0).astype('float32')
         loss = F.binary_cross_entropy_with_logits(logit, se_label)
         return loss
 
