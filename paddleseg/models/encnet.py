@@ -131,7 +131,7 @@ class Encoding(nn.Layer):
         num_codes, channels = paddle.shape(codewords)
         batch_size = paddle.shape(x)
         reshaped_scale = scale.reshape([1, 1, num_codes])
-        expanded_x = x.unsqueeze(2).expand([batch_size, paddle.shape(x)[1], num_codes, channels])
+        expanded_x = paddle.expand(x.unsqueeze(2), [batch_size, paddle.shape(x)[1], num_codes, channels])
         reshaped_codewords = codewords.reshape([1, 1, num_codes, channels])
 
         scaled_l2_norm = reshaped_scale * (expanded_x - reshaped_codewords).pow(2).sum(axis=3)
@@ -142,7 +142,7 @@ class Encoding(nn.Layer):
         num_codes, channels = paddle.shape(codewords)
         reshaped_codewords = codewords.reshape([1, 1, num_codes, channels])
         batch_size = paddle.shape(x)[0]
-        expanded_x = x.unsqueeze(2).expand(
+        expanded_x = paddle.expand(x.unsqueeze(2), 
             [batch_size, paddle.shape(x)[1], num_codes, channels]
         )
         encoded_feat = (assignment_weights.unsqueeze(3) * (expanded_x - reshaped_codewords)).sum(axis=1)
