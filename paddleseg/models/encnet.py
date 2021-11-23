@@ -69,10 +69,7 @@ class ENCNet(nn.Layer):
             nn.Conv2D(mid_channels, num_classes, 1),
         )
 
-        self.fcn_head = nn.Sequential(
-            layers.ConvBNReLU(self.backbone.feat_channels[2], mid_channels, 3, padding=1),
-            nn.Conv2D(mid_channels, num_classes, 1),
-        )
+        self.fcn_head = layers.AuxLayer(self.backbone.feat_channels[2], mid_channels, num_classes)
 
         self.use_se_loss = use_se_loss
         if use_se_loss:
@@ -88,11 +85,12 @@ class ENCNet(nn.Layer):
     def forward(self, inputs):
         feats = self.backbone(inputs)
         fcn_feat = feats[2]
+
         feats = [feats[i] for i in self.in_index]
         feat = self.bottleneck(feats[-1])
         if self.add_lateral:
             laterals = [
-                F.interpolate(lateral_conv(inputs[i]), size=feat.shape[2:], mode='bilinear', align_corners=False)
+                F.interpolate(lateral_conv(feats[i]), size=feat.shape[2:], mode='bilinear', align_corners=False)
                 for i, lateral_conv in enumerate(self.lateral_convs)
             ]
             feat = self.fusion(paddle.concat([feat, *laterals], 1))
@@ -131,7 +129,8 @@ class Encoding(nn.Layer):
         num_codes, channels = paddle.shape(codewords)
         batch_size = paddle.shape(x)
         reshaped_scale = scale.reshape([1, 1, num_codes])
-        expanded_x = paddle.expand(x.unsqueeze(2), [batch_size, paddle.shape(x)[1], num_codes, channels])
+        # expanded_x = paddle.expand(x.unsqueeze(2), [batch_size, paddle.shape(x)[1], num_codes, channels])
+        expanded_x = paddle.tile(x.unsqueeze(2), [1, 1, num_codes, 1])
         reshaped_codewords = codewords.reshape([1, 1, num_codes, channels])
 
         scaled_l2_norm = reshaped_scale * (expanded_x - reshaped_codewords).pow(2).sum(axis=3)
@@ -142,9 +141,8 @@ class Encoding(nn.Layer):
         num_codes, channels = paddle.shape(codewords)
         reshaped_codewords = codewords.reshape([1, 1, num_codes, channels])
         batch_size = paddle.shape(x)[0]
-        expanded_x = paddle.expand(x.unsqueeze(2), 
-            [batch_size, paddle.shape(x)[1], num_codes, channels]
-        )
+        # expanded_x = paddle.expand(x.unsqueeze(2), [batch_size, paddle.shape(x)[1], num_codes, channels])
+        expanded_x = paddle.tile(x.unsqueeze(2), [1, 1, num_codes, 1])
         encoded_feat = (assignment_weights.unsqueeze(3) * (expanded_x - reshaped_codewords)).sum(axis=1)
         return encoded_feat
     
@@ -186,18 +184,3 @@ class EncModule(nn.Layer):
         y = gamma.reshape([batch_size, channels, 1, 1])
         output = F.relu(x + x * y)
         return encoding_feat, output
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
