@@ -64,13 +64,20 @@ output目录下包含已经训练好的模型参数以及对应的日志文件�
 python val.py --config configs/encnet_cityscapes_1024x512_80k.yml --model_path 
 ```
 
+### 第四步：tipc
+在linux下，进入ENCNet_paddle文件夹，运行命令
+```bash
+bash test_train_inference_python.sh
+```
+
 ## 5 代码结构与说明
 **代码结构**
 ```
 ├─configs                          
 ├─images                         
 ├─output                           
-├─paddleseg                                                   
+├─paddleseg       
+├─test_tipc                                            
 │  export.py                     
 │  predict.py                        
 │  README.md                        
@@ -95,6 +102,6 @@ python val.py --config configs/encnet_cityscapes_1024x512_80k.yml --model_path
 | 框架版本 | PaddlePaddle==2.2.0 |
 | 应用场景 | 语义分割 |
 | 硬件支持 | GPU、CPU |
-| 在线体验 | notebook, [Script](https://aistudio.baidu.com/aistudio/clusterprojectdetail/2998787)|
+| 在线体验 | [notebook](https://aistudio.baidu.com/aistudio/projectdetail/3001104?contributionType=1), [Script](https://aistudio.baidu.com/aistudio/clusterprojectdetail/2998787)|
 
 
