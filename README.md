@@ -15,9 +15,9 @@
 >在CityScapes val数据集的测试效果如下表。
 
 
-|NetWork |steps|opt|image_size|batch_size|dataset|memory|card|mIou|config|
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-|DMNet|80K|SGD|1024x512|8|CityScapes|32G|4|0|[encnet_cityscapes_1024x512_80k.yml](configs/encnet/encnet_cityscapes_1024x512_80k.yml)|
+|NetWork |steps|opt|image_size|batch_size|dataset|memory|card|mIou|config|weight|log|
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+|DMNet|80K|SGD|1024x512|8|CityScapes|32G|4|78.70|[encnet_cityscapes_1024x512_80k.yml](configs/encnet/encnet_cityscapes_1024x512_80k.yml)|[link](https://bj.bcebos.com/v1/ai-studio-cluster-infinite-task/outputs/105022.tar?authorization=bce-auth-v1%2F0ef6765c1e494918bc0d4c3ca3e5c6d1%2F2021-11-24T10%3A37%3A31Z%2F-1%2F%2F1d0504cbdf4fac38dc60c1298e9b632e739d1a2f952485056a8f50ff45f3344b)|[log](log/trainer-0.log)|
 
 ## 3 数据集
 [CityScapes dataset](https://www.cityscapes-dataset.com/)
@@ -81,7 +81,7 @@ python val.py --config configs/encnet_cityscapes_1024x512_80k.yml --model_path
 │  val.py                       
 ```
 **说明**
-1、本项目在Aistudio平台，使用Tesla V100 * 4 脚本任务训练120K miou达到69.56%。  
+1、本项目在Aistudio平台，使用Tesla V100 * 4 脚本任务训练80K miou达到78.70%。  
 2、本项目基于PaddleSeg开发。  
 
 ## 6 模型信息
@@ -95,6 +95,6 @@ python val.py --config configs/encnet_cityscapes_1024x512_80k.yml --model_path
 | 框架版本 | PaddlePaddle==2.2.0 |
 | 应用场景 | 语义分割 |
 | 硬件支持 | GPU、CPU |
-| 在线体验 | [notebook](https://aistudio.baidu.com/aistudio/projectdetail/2268710?contributionType=1), [Script](https://aistudio.baidu.com/aistudio/clusterprojectdetail/2388364)|
+| 在线体验 | notebook, [Script](https://aistudio.baidu.com/aistudio/clusterprojectdetail/2998787)|
 
 
