@@ -85,14 +85,19 @@ class ENCNet(nn.Layer):
     def forward(self, inputs):
         feats = self.backbone(inputs)
         fcn_feat = feats[2]
-
-        feats = [feats[i] for i in self.in_index]
+        
+        temp_feats = []
+        for i in self.in_index:
+            temp_feats.append(feats[i])
+        feats = temp_feats
         feat = self.bottleneck(feats[-1])
+        
         if self.add_lateral:
-            laterals = [
-                F.interpolate(lateral_conv(feats[i]), size=feat.shape[2:], mode='bilinear', align_corners=False)
-                for i, lateral_conv in enumerate(self.lateral_convs)
-            ]
+            laterals = []
+            for i, lateral_conv in enumerate(self.lateral_convs):
+                laterals.append(
+                    F.interpolate(lateral_conv(feats[i]), size=paddle.shape(feat)[2:], mode='bilinear', align_corners=False)
+                )
             feat = self.fusion(paddle.concat([feat, *laterals], 1))
         encode_feat, feat = self.enc_module(feat)
         out = self.cls_seg(feat)
@@ -123,9 +128,9 @@ class Encoding(nn.Layer):
             shape=(num_codes,),
             default_initializer=nn.initializer.Uniform(-1, 0),
         )
+        self.channels = channels
 
-    @staticmethod
-    def scaled_l2(x, codewords, scale):
+    def scaled_l2(self, x, codewords, scale):
         num_codes, channels = paddle.shape(codewords)
         batch_size = paddle.shape(x)
         reshaped_scale = scale.reshape([1, 1, num_codes])
@@ -133,29 +138,33 @@ class Encoding(nn.Layer):
         expanded_x = paddle.tile(x.unsqueeze(2), [1, 1, num_codes, 1])
         reshaped_codewords = codewords.reshape([1, 1, num_codes, channels])
 
-        scaled_l2_norm = reshaped_scale * (expanded_x - reshaped_codewords).pow(2).sum(axis=3)
+        scaled_l2_norm = paddle.multiply(reshaped_scale, (expanded_x - reshaped_codewords).pow(2).sum(axis=3))
         return scaled_l2_norm
 
-    @staticmethod
-    def aggregate(assignment_weights, x, codewords):
+    def aggregate(self, assignment_weights, x, codewords):
         num_codes, channels = paddle.shape(codewords)
         reshaped_codewords = codewords.reshape([1, 1, num_codes, channels])
         batch_size = paddle.shape(x)[0]
         # expanded_x = paddle.expand(x.unsqueeze(2), [batch_size, paddle.shape(x)[1], num_codes, channels])
         expanded_x = paddle.tile(x.unsqueeze(2), [1, 1, num_codes, 1])
-        encoded_feat = (assignment_weights.unsqueeze(3) * (expanded_x - reshaped_codewords)).sum(axis=1)
+        
+        encoded_feat = paddle.multiply(assignment_weights.unsqueeze(3), (expanded_x - reshaped_codewords)).sum(axis=1)
+        encoded_feat = paddle.reshape(encoded_feat, [-1, self.num_codes, self.channels])
         return encoded_feat
     
     def forward(self, x):
         x_dims = x.ndim
         assert x_dims == 4, "The dimension of input tensor must equal 4, but got {}.".format(x_dims)
         assert paddle.shape(x)[1] == self.channels, "Encoding channels error, excepted {} but got {}.".format(self.channels, paddle.shape(x)[1])
-
-        batch_size = paddle.shape(x)
+ 
+        batch_size = paddle.shape(x)[0]
+        
         x = x.reshape([batch_size, self.channels, -1]).transpose([0, 2, 1])
+        
         assignment_weights = F.softmax(self.scaled_l2(x, self.codewords, self.scale), axis=2)
 
         encoded_feat = self.aggregate(assignment_weights, x, self.codewords)
+        
         return encoded_feat
 
 class EncModule(nn.Layer):
@@ -175,12 +184,17 @@ class EncModule(nn.Layer):
             nn.Linear(in_channels, in_channels),
             nn.Sigmoid(),
         )
+        self.in_channels = in_channels
+        self.num_codes = num_codes
 
     def forward(self, x):
         encoding_projection = self.encoding_project(x)
-        encoding_feat = self.encoding(encoding_projection).mean(axis=1)
+        encoding_feat = self.encoding(encoding_projection)
+        
+        encoding_feat = encoding_feat.mean(axis=1)
         batch_size, channels, _, _ = paddle.shape(x)
+        
         gamma = self.fc(encoding_feat)
-        y = gamma.reshape([batch_size, channels, 1, 1])
+        y = gamma.reshape([batch_size, self.in_channels, 1, 1])
         output = F.relu(x + x * y)
         return encoding_feat, output
