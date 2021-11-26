@@ -46,7 +46,7 @@ inference:deploy/python/infer.py
 --precision:fp32|int8
 null:
 --image_path:./test_tipc/data/mini_supervisely/test.txt
---save_log_path:null
+--save_dir:./test_tipc/results
 --benchmark:True
 --config:./test_tipc/output/norm_gpus_0_autocast_null/deploy.yaml
---model_name:encnet_small
+--model_name:null
