@@ -48,10 +48,10 @@ bash test_tipc/test_train_inference_python.sh configs/[model_name]/[params_file_
 ```shell
 # 功能：准备数据
 # 格式：bash + 运行脚本 + 参数1: 配置文件选择 + 参数2: 模式选择
-bash test_tipc/prepare.sh ./test_tipc/configs/encnet_small/train_infer_python.txt 'lite_train_infer'
+bash test_tipc/prepare.sh ./test_tipc/configs/encnet_small/train_infer_python.txt 'lite_train_lite_infer'
 
 # 功能：运行测试
 # 格式：bash + 运行脚本 + 参数1: 配置文件选择 + 参数2: 模式选择
-bash test_tipc/test_train_inference_python.sh ./test_tipc/configs/encnet_small/train_infer_python.txt 'lite_train_infer'
+bash test_tipc/test_train_inference_python.sh ./test_tipc/configs/encnet_small/train_infer_python.txt 'lite_train_lite_infer'
 ```
 
