@@ -59,7 +59,7 @@ export_key1=$(func_parser_key "${lines[33]}")
 export_value1=$(func_parser_value "${lines[33]}")
 export_key2=$(func_parser_key "${lines[34]}")
 export_value2=$(func_parser_value "${lines[34]}")
-# inference_dir=$(func_parser_value "${lines[35]}")
+inference_dir=$(func_parser_value "${lines[35]}")
 
 # parser inference model
 infer_model_dir_list=$(func_parser_value "${lines[36]}")
